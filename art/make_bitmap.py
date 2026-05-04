@@ -4,7 +4,13 @@
 from PIL import Image
 
 # Open the image
-img = Image.open("tt_logo_128.png")
+img = Image.open("cybertron.png")
+
+# Handle transparency by placing on a white background
+if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
+    background = Image.new("RGBA", img.size, (255, 255, 255, 255))
+    background.paste(img, mask=img.convert("RGBA"))
+    img = background
 
 # Convert the image to grayscale
 img = img.convert("L")
@@ -35,5 +41,5 @@ module.append("")
 module.append("endmodule")
 module.append("")
 
-with open("../src/bitmap_rom.v", "w") as f:
+with open("../fpga/bitmap_rom.v", "w") as f:
     f.write("\n".join(module))
