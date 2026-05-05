@@ -2,6 +2,7 @@
  * Copyright (c) 2024 Tiny Tapeout LTD
  * SPDX-License-Identifier: Apache-2.0
  * Author: Uri Shaked
+ * Modified by Au Kai Zhe, Lim Zing (2026)
  */
 
 `default_nettype none
@@ -37,6 +38,9 @@ module tt_um_tinytapeout_dvd_screensaver (
   wire cfg_tile = ui_in[0];
   wire cfg_color = ui_in[1];
 
+  wire [2:0] color_index;
+  assign color_index = ui_in[4:2];
+
   // TinyVGA PMOD
   assign uo_out  = {hsync, B[0], G[0], R[0], vsync, B[1], G[1], R[1]};
 
@@ -46,8 +50,6 @@ module tt_um_tinytapeout_dvd_screensaver (
 
   // Suppress unused signals warning
   wire _unused_ok = &{ena, ui_in[7:1], uio_in};
-
-  reg [9:0] prev_y;
 
   vga_sync_generator vga_sync_gen (
       .clk(clk),
@@ -59,13 +61,10 @@ module tt_um_tinytapeout_dvd_screensaver (
       .vpos(pix_y)
   );
 
-  reg [9:0] logo_left;
-  reg [9:0] logo_top;
-  reg dir_x;
-  reg dir_y;
+  wire [9:0] logo_left = 256;  // Center X: (640 - 128) / 2
+  wire [9:0] logo_top = 176;   // Center Y: (480 - 128) / 2
 
   wire pixel_value;
-  reg [2:0] color_index;
   wire [5:0] color;
 
   wire [9:0] x = pix_x - logo_left;
@@ -97,39 +96,6 @@ module tt_um_tinytapeout_dvd_screensaver (
         R <= pixel_value ? color[5:4] : 0;
         G <= pixel_value ? color[3:2] : 0;
         B <= pixel_value ? color[1:0] : 0;
-      end
-    end
-  end
-
-  // Bouncing logic
-  always @(posedge clk) begin
-    if (~rst_n) begin
-      logo_left <= 200;
-      logo_top <= 200;
-      dir_y <= 0;
-      dir_x <= 1;
-      color_index <= 0;
-    end else begin
-      prev_y <= pix_y;
-      if (pix_y == 0 && prev_y != pix_y) begin
-        logo_left <= logo_left + (dir_x ? 1 : -1);
-        logo_top  <= logo_top + (dir_y ? 1 : -1);
-        if (logo_left - 1 == 0 && !dir_x) begin
-          dir_x <= 1;
-          color_index <= color_index + 1;
-        end
-        if (logo_left + 1 == DISPLAY_WIDTH - LOGO_SIZE && dir_x) begin
-          dir_x <= 0;
-          color_index <= color_index + 1;
-        end
-        if (logo_top - 1 == 0 && !dir_y) begin
-          dir_y <= 1;
-          color_index <= color_index + 1;
-        end
-        if (logo_top + 1 == DISPLAY_HEIGHT - LOGO_SIZE && dir_y) begin
-          dir_y <= 0;
-          color_index <= color_index + 1;
-        end
       end
     end
   end
