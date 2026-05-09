@@ -20,7 +20,7 @@ module tt_um_tinytapeout_dvd_screensaver (
     input  wire       rst_n     // reset_n - low to reset
 );
 
-  parameter LOGO_SIZE = 128;  // Size of the logo in pixels
+  parameter LOGO_SIZE = 256;  // Size of the logo in pixels
   parameter DISPLAY_WIDTH = 640;  // VGA display width
   parameter DISPLAY_HEIGHT = 480;  // VGA display height
 
@@ -61,19 +61,19 @@ module tt_um_tinytapeout_dvd_screensaver (
       .vpos(pix_y)
   );
 
-  wire [9:0] logo_left = 256;  // Center X: (640 - 128) / 2
-  wire [9:0] logo_top = 176;   // Center Y: (480 - 128) / 2
+  wire [9:0] logo_left = 192;  // Center X: (640 - 256) / 2
+  wire [9:0] logo_top = 112;   // Center Y: (480 - 256) / 2
 
   wire pixel_value;
   wire [5:0] color;
 
   wire [9:0] x = pix_x - logo_left;
   wire [9:0] y = pix_y - logo_top;
-  wire logo_pixels = cfg_tile || (x[9:7] == 0 && y[9:7] == 0);
+  wire logo_pixels = cfg_tile || (x[9:8] == 0 && y[9:8] == 0);
 
   bitmap_rom rom1 (
-      .x(~x[6:0]),
-      .y(~y[6:0]),
+      .x(~x[7:0]),
+      .y(~y[7:0]),
       .pixel(pixel_value)
   );
 
